@@ -24,9 +24,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@kleros/erc-792/contracts/IArbitrator.sol";
 import "./IArbitrableProxy.sol";
+import "./ERC20Rescue.sol";
 
 
-contract ArbitratorRegistry is Ownable
+contract ArbitratorRegistry is Ownable, ERC20Rescue
 {
     event Deployed();
     event ArbitratorAdded(uint256 indexed id, string name, IArbitrableProxy arbitratorProxy, bytes extraData);

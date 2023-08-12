@@ -28,8 +28,9 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./IProtector.sol";
 import "./INFTProtect2Core.sol";
+import "./ERC20Rescue.sol";
 
-contract ProtectorFactory721 is IProtectorFactory, Context
+contract ProtectorFactory721 is IProtectorFactory, Context, ERC20Rescue
 {
     INFTProtect2Core public _core;
 
@@ -138,21 +139,6 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
         _original.safeTransferFrom(_msgSender(), address(this), tokenId);
         _allow=0;
         emit Protected(entityId, pr);
-    }
-
-    /**
-     * @dev Burn protected token and send original token to the owner.
-     * Ask Core about possibility of this operation. When all conditions
-     * completed, Core calls burnEntity().
-     */
-    function burn(uint256 tokenId, address dst, uint256 arbitratorId, string memory evidence) public payable
-    {
-        _core.entityRequestForDelete(
-            _tokenIdToEntity[tokenId],
-            _msgSender(),
-            dst,
-            arbitratorId,
-            evidence);
     }
 
     function burnEntity(uint256 entityId, address dst) public onlyCore

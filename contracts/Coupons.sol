@@ -23,9 +23,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./ERC20Rescue.sol";
 
 
-contract Coupons is Ownable, ERC20
+contract Coupons is Ownable, ERC20, ERC20Rescue
 {
     event Deployed();
     event TransferrableSet(bool state);

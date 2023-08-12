@@ -24,9 +24,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IUserRegistry.sol";
 import "./Coupons.sol";
 import "./IProtector.sol";
+import "./IRequestHub.sol";
 import "./INFTProtect2Core.sol";
+import "./ERC20Rescue.sol";
 
-contract NFTProtect2 is Ownable, INFTProtect2Core
+
+contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
 {
     event Deployed();
     event TechnicalOwnerChanged(address);
@@ -34,12 +37,15 @@ contract NFTProtect2 is Ownable, INFTProtect2Core
     event ProtectorFactoryUnregistered(IProtectorFactory);
     event UserRegistryChanged(IUserRegistry);
     event MetaEvidenceLoaderChanged(address);
+    event RequestHubChanged(IRequestHub);
+    event BurnOnActionChanged(bool boa);
 
     struct Entity
     {
         address    originalOwner;
         address    wrappedOwner;
         Protection protection;
+        IProtector protector;
     }
 
     uint256                             public _entityCounter;
@@ -49,11 +55,20 @@ contract NFTProtect2 is Ownable, INFTProtect2Core
     mapping(address=>IProtector)        public _originalToProtector;
     mapping(uint256=>Entity)            public _entities;
     IUserRegistry                       public _userRegistry;
+    IRequestHub                         public _requestHub;
     address                             public _metaEvidenceLoader;
+    bool                                public _burnOnAction;
 
     constructor()
     {
         emit Deployed();
+        setBurnOnAction(true);
+    }
+
+    function setBurnOnAction(bool boa) public onlyOwner
+    {
+        _burnOnAction=boa;
+        emit BurnOnActionChanged(boa);
     }
 
     modifier onlyFactory()
@@ -65,6 +80,12 @@ contract NFTProtect2 is Ownable, INFTProtect2Core
     modifier onlyProtector()
     {
         require(_protectorToOriginal[IProtector(_msgSender())]!=address(0), "not protector");
+        _;
+    }
+
+    modifier onlyRequestHub()
+    {
+        require(_msgSender()==address(_requestHub), "not request hub");
         _;
     }
 
@@ -81,19 +102,19 @@ contract NFTProtect2 is Ownable, INFTProtect2Core
         emit ProtectorFactoryUnregistered(factory);
     }
 
-    function protectorCreated(IProtector pr, address original, address creator) external override onlyFactory()
+    function protectorCreated(IProtector pr, address original, address creator) public override onlyFactory()
     {
         _userRegistry.giveReward(creator);
         _protectorToOriginal[pr]=original;
         _originalToProtector[original]=pr;
     }
 
-    function protector(address original) external view override returns(IProtector)
+    function protector(address original) public view override returns(IProtector)
     {
         return _originalToProtector[original];
     }
 
-    function technicalOwner() external view override returns(address)
+    function technicalOwner() public view override returns(address)
     {
         return _technicalOwner;
     }
@@ -117,38 +138,31 @@ contract NFTProtect2 is Ownable, INFTProtect2Core
     function setUserRegistry(IUserRegistry userRegistry) public onlyOwner()
     {
         _userRegistry=userRegistry;
+        _requestHub.setUserRegistry(_userRegistry);
         emit UserRegistryChanged(userRegistry);
     }
 
-    function entityCreated(address creator, address referrer, Protection pr) external override payable onlyProtector() returns(uint256)
+    function setRequestHub(IRequestHub requestHub) public onlyOwner()
     {
-        require(pr==Protection.Basic || _userRegistry.isQualified(_msgSender()), "not qualified");
-        require(_userRegistry.isRegistered(_msgSender()), "unregistered");
-        _userRegistry.processPayment{value: msg.value}(_msgSender(), payable(referrer), pr);
+        _requestHub=requestHub;
+        _requestHub.setUserRegistry(_userRegistry);
+        emit RequestHubChanged(requestHub);
+    }
+
+    function entityCreated(address creator, address referrer, Protection pr) public override payable onlyProtector() returns(uint256)
+    {
+        require(pr==Protection.Basic || _userRegistry.isQualified(creator), "not qualified");
+        require(_userRegistry.isRegistered(creator), "unregistered");
+        _userRegistry.processPayment{value: msg.value}(creator, payable(referrer), pr);
         uint256 entityId=++_entityCounter;
         _entities[entityId].originalOwner=creator;
         _entities[entityId].wrappedOwner=creator;
         _entities[entityId].protection=pr;
+        _entities[entityId].protector=IProtector(_msgSender());
         return entityId;
     }
 
-    function entityRequestForDelete(uint256 entityId, address from, address dst, uint256 arbitratorId, string memory evidence) public onlyProtector()
-    {
-        Entity memory entity=_entities[entityId];
-        require(entity.originalOwner!=address(0), "no entity");
-        if(entity.protection==Protection.Basic &&
-            _userRegistry.trueUser(entity.originalOwner)==_userRegistry.trueUser(entity.wrappedOwner) &&
-            _userRegistry.trueUser(entity.originalOwner)==_userRegistry.trueUser(from))
-        {
-            IProtector(_msgSender()).burnEntity(entityId, dst);
-        }
-        else
-        {
-            //TODO arbitrate
-        }
-    }
-
-    function entityWrappedOwnerChanged(uint256 entityId, address owner) external onlyProtector()
+    function entityWrappedOwnerChanged(uint256 entityId, address owner) public override onlyProtector()
     {
         Entity storage entity=_entities[entityId];
         require(entity.originalOwner!=address(0), "no entity");
@@ -156,9 +170,60 @@ contract NFTProtect2 is Ownable, INFTProtect2Core
         entity.wrappedOwner=owner;
     }
 
-    function entityUnderDisupte(uint256 entityId) external view returns(bool)
+    function entityUnderDisupte(uint256 entityId) public view override returns(bool)
     {
-        // TODO
+        if(address(_requestHub)!=address(0))
+        {
+            return _requestHub.hasRequest(entityId);
+        }
         return false;
    }
+
+    function entityInfo(uint256 entityId) external view returns(
+            address    originalOwner,
+            address    wrappedOwner,
+            Protection protection)
+    {
+        Entity memory entity=_entities[entityId];
+        return(entity.originalOwner, entity.wrappedOwner, entity.protection);
+    }
+
+    function applyBurn(uint256 entityId, address dst) public override onlyRequestHub
+    {
+        _burnEntity(entityId, dst);
+    }
+
+    function applyOwnershipAdjustment(uint256 entityId, address dst) public override onlyRequestHub
+    {
+        Entity storage entity=_entities[entityId];
+        require(entity.originalOwner!=address(0), "no entity");
+        if (dst==address(0))
+        {
+            dst=entity.wrappedOwner;
+        }
+        entity.originalOwner=dst;
+        if (_burnOnAction)
+        {
+            _burnEntity(entityId, dst);
+        }
+    }
+
+    function applyOwnershipRestore(uint256 entityId, address dst) public override onlyRequestHub
+    {
+        Entity storage entity=_entities[entityId];
+        require(entity.originalOwner!=address(0), "no entity");
+        entity.protector.transferEntity(entityId, dst);
+        if (_burnOnAction)
+        {
+            _burnEntity(entityId, dst);
+        }
+    }
+
+    function _burnEntity(uint256 entityId, address dst) internal
+    {
+        Entity storage entity=_entities[entityId];
+        require(entity.originalOwner!=address(0), "no entity");
+        entity.protector.burnEntity(entityId, dst);
+        delete _entities[entityId];
+    }
 }

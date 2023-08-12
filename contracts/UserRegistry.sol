@@ -31,7 +31,7 @@ import "./IArbitrableProxy.sol";
 import "./Coupons.sol";
 
 
-contract UserRegistry is Ownable, IUserRegistry
+contract UserRegistry is Ownable, IUserRegistry, ERC20Rescue
 {
     using Address for address payable;
 
