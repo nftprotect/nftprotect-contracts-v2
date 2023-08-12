@@ -284,9 +284,6 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         require(address(arbitrableProxy)!=address(0), "no arbitrator");
     }
 
-    /** @dev Must be called by the owner of the original entity to confirm or reject
-     *  ownership transfer to the new owner of the wrapper entity.
-     */
     function answerOwnershipAdjustment(uint256 requestId, bool accept, string memory evidence) public override payable
     {
         Request storage request=_requests[requestId];

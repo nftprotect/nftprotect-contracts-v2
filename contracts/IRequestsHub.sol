@@ -57,7 +57,7 @@ interface IRequestHub
      *  If not, need to call askOwnershipAdjustment() first.
      *  If case of Ultra protection start dispute.
      */
-    function burn(uint256[] calldata entityies, address dst, uint256 arbitratorId, string memory evidence) external payable;
+    function burn(uint256[] calldata entities, address dst, uint256 arbitratorId, string memory evidence) external payable;
 
     /** @dev Transfer ownerhip for `entities` to the wrapperOwner.
      *  Must be called by the originalOwner.
