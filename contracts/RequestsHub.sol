@@ -95,7 +95,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         emit ArbitratorRegistryChanged(_arbitratorRegistry);
     }
 
-    function setUserRegistry(IUserRegistry userRegistry) public override onlyOwner()
+    function setUserRegistry(IUserRegistry userRegistry) public override onlyCore
     {
         _userRegistry=userRegistry;
     }
