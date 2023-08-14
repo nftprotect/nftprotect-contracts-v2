@@ -29,8 +29,7 @@ enum Protection
 interface IProtectorFactory
 {
     event ProtectorCreated(IProtector indexed p, address original);
-    function name() external view returns(string memory);
-    function createProtector(address original) external returns(IProtector);
+    function factoryName() external returns(string memory);
 }
 
 interface IProtector

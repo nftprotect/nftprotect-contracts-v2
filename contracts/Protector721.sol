@@ -39,26 +39,31 @@ contract ProtectorFactory721 is IProtectorFactory, Context, ERC20Rescue
         _core=core;
     }
 
-    function name() external pure returns(string memory)
+    function factoryName() public pure override returns(string memory)
     {
         return("ERC721");
     }
 
-    function createProtector(address original) external returns(IProtector)
+    function createProtector(address original, string memory name, string memory symbol) public returns(IProtector)
     {
-        require(_core.protector(original)==IProtector(address(0)), "Already have protector");
-        string memory pname="NFTP";
-        string memory psymbol="NFT Protect";
-        if(IERC165(original).supportsInterface(type(IERC721Metadata).interfaceId))
-        {
-            pname=string(abi.encodePacked("NFTProtect: ", IERC721Metadata(original).name()));
-            psymbol=string(abi.encodePacked("NFTP-", IERC721Metadata(original).symbol()));
-        }
-        Protector721 protector=new Protector721(_core, IERC721(original), pname, psymbol);
+        Protector721 protector=new Protector721(_core, IERC721(original), name, symbol);
         emit ProtectorCreated(protector, original);
         protector.transferOwnership(_core.technicalOwner());
         _core.onProtectorCreated(protector, original, _msgSender());
         return protector;
+    } 
+
+    function createProtector(address original) external returns(IProtector)
+    {
+        require(_core.protector(original)==IProtector(address(0)), "Already have protector");
+        string memory name="NFTP";
+        string memory symbol="NFT Protect";
+        if(IERC165(original).supportsInterface(type(IERC721Metadata).interfaceId))
+        {
+            name=string(abi.encodePacked("NFTProtect: ", IERC721Metadata(original).name()));
+            symbol=string(abi.encodePacked("NFTP-", IERC721Metadata(original).symbol()));
+        }
+        return createProtector(original, name, symbol);
     }
 }
 
