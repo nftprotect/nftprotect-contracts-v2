@@ -75,7 +75,9 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
     uint256                             constant    _numberOfRulingOptions=2; // Notice that option 0 is reserved for RefusedToArbitrate
     mapping(uint256=>Request)           public      _requests;
     mapping(uint256=>uint256)           public      _entityToRequest;
-    mapping(uint256=>uint256)           public      _disputeToRequest;
+    // mapping arbitratorId=>disputeId=>requestId
+    mapping(uint256=>
+        mapping(uint256=>uint256))      public      _disputeToRequest;
 
     constructor(address areg, INFTProtect2Core core)
     {
@@ -172,7 +174,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
             request.externalDisputeId=arbitrableProxy.createDispute{value: msg.value}(extraData, _metaEvidences[MetaEvidenceType.burn], _numberOfRulingOptions);
             request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
             arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
-            _disputeToRequest[request.localDisputeId]=requestId;
+            _disputeToRequest[arbitratorId][request.localDisputeId]=requestId;
             emit DisputeCreated(requestId, arbitratorId, request.externalDisputeId);
         }
     }
@@ -232,7 +234,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
             request.externalDisputeId=arbitrableProxy.createDispute{value: msg.value}(extraData, _metaEvidences[MetaEvidenceType.adjustOwnership], _numberOfRulingOptions);
             request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
             arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
-            _disputeToRequest[request.localDisputeId]=requestId;
+            _disputeToRequest[arbitratorId][request.localDisputeId]=requestId;
             emit DisputeCreated(requestId, arbitratorId, request.externalDisputeId);
         }
     }
@@ -329,7 +331,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
                 request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
                 arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
                 request.status=Status.Disputed;
-                _disputeToRequest[request.localDisputeId]=requestId;
+                _disputeToRequest[request.arbitratorId][request.localDisputeId]=requestId;
                 emit OwnershipAdjustmentArbitrateAsked(requestId, request.newowner);
                 emit DisputeCreated(requestId, request.arbitratorId, request.externalDisputeId);
             }
@@ -354,7 +356,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
         arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
         request.status=Status.Disputed;
-        _disputeToRequest[request.localDisputeId]=requestId;
+        _disputeToRequest[request.arbitratorId][request.localDisputeId]=requestId;
         emit OwnershipAdjustmentArbitrateAsked(requestId, request.newowner);
         emit DisputeCreated(requestId, request.arbitratorId, request.externalDisputeId);
     }
@@ -414,7 +416,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         request.externalDisputeId=arbitrableProxy.createDispute{value: msg.value}(extraData, _metaEvidences[metaEvidenceType], _numberOfRulingOptions);
         request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
         arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
-        _disputeToRequest[request.localDisputeId]=requestId;
+        _disputeToRequest[arbitratorId][request.localDisputeId]=requestId;
         emit DisputeCreated(requestId, arbitratorId, request.externalDisputeId);
     }
 
