@@ -35,6 +35,7 @@ interface IRequestHub
     event OwnershipRestoreAsked(uint256 indexed requestId, address newowner);
     event OwnershipRestoreAnswered(uint256 indexed requestId, bool accept);
     event EntityAddedToRequest(uint256 indexed requestId, uint256 indexed entityId, address src, address dst);
+    event DisputeCreated(uint256 indexed requestId, uint256 indexed arbitratorId, uint256 indexed disputeId);
 
     enum MetaEvidenceType
     {

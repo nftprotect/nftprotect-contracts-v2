@@ -173,6 +173,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
             request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
             arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
             _disputeToRequest[request.localDisputeId]=requestId;
+            emit DisputeCreated(requestId, arbitratorId, request.externalDisputeId);
         }
     }
 
@@ -232,6 +233,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
             request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
             arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
             _disputeToRequest[request.localDisputeId]=requestId;
+            emit DisputeCreated(requestId, arbitratorId, request.externalDisputeId);
         }
     }
 
@@ -329,6 +331,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
                 request.status=Status.Disputed;
                 _disputeToRequest[request.localDisputeId]=requestId;
                 emit OwnershipAdjustmentArbitrateAsked(requestId, request.newowner);
+                emit DisputeCreated(requestId, request.arbitratorId, request.externalDisputeId);
             }
         }
         else
@@ -353,6 +356,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         request.status=Status.Disputed;
         _disputeToRequest[request.localDisputeId]=requestId;
         emit OwnershipAdjustmentArbitrateAsked(requestId, request.newowner);
+        emit DisputeCreated(requestId, request.arbitratorId, request.externalDisputeId);
     }
 
     function askOwnershipRestoreArbitrate(uint256[] calldata entities, address dst, uint256 arbitratorId, MetaEvidenceType metaEvidenceType, string memory evidence) public override payable
@@ -411,6 +415,7 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         request.localDisputeId=arbitrableProxy.externalIDtoLocalID(request.externalDisputeId);
         arbitrableProxy.submitEvidence(request.localDisputeId, evidence);
         _disputeToRequest[request.localDisputeId]=requestId;
+        emit DisputeCreated(requestId, arbitratorId, request.externalDisputeId);
     }
 
     function submitMetaEvidence(MetaEvidenceType evidenceType, string memory evidence) public override
