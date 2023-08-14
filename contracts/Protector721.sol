@@ -57,7 +57,7 @@ contract ProtectorFactory721 is IProtectorFactory, Context, ERC20Rescue
         Protector721 protector=new Protector721(_core, IERC721(original), pname, psymbol);
         emit ProtectorCreated(protector, original);
         protector.transferOwnership(_core.technicalOwner());
-        _core.protectorCreated(protector, original, _msgSender());
+        _core.onProtectorCreated(protector, original, _msgSender());
         return protector;
     }
 }
@@ -131,7 +131,7 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
     function protect(uint256 tokenId, Protection pr, address payable referrer) public payable
     {
         require(_tokenIdToEntity[tokenId]==0, "already protected");
-        uint256 entityId=_core.entityCreated{value: msg.value}(_msgSender(), referrer, pr);
+        uint256 entityId=_core.onEntityCreated{value: msg.value}(_msgSender(), referrer, pr);
         _mint(_msgSender(), tokenId);
         _tokenIdToEntity[tokenId]=entityId;
         _entityToTokenId[entityId]=tokenId;
@@ -163,6 +163,6 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
         uint256 entityId=_tokenIdToEntity[tokenId];
         require(entityId!=0, "not protected");
         require(!_core.entityUnderDisupte(_tokenIdToEntity[tokenId]), "under dispute");
-        _core.entityWrappedOwnerChanged(entityId, to);
+        _core.onEntityWrappedOwnerChanged(entityId, to);
     }
 }

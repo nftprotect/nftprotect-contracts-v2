@@ -26,14 +26,14 @@ interface INFTProtect2Core
 {
     function technicalOwner() external returns(address);
 
-    function protectorCreated(IProtector protector, address original, address creator) external;
+    function onProtectorCreated(IProtector protector, address original, address creator) external;
     function protector(address original) external returns(IProtector);
 
     /** @dev Call from IProtector implementation to notify about
      *       creation of entity and get global ID of entity.
      */
-    function entityCreated(address creator, address referrer, Protection pr) external payable returns(uint256);
-    function entityWrappedOwnerChanged(uint256 entityId, address newowner) external;
+    function onEntityCreated(address creator, address referrer, Protection pr) external payable returns(uint256);
+    function onEntityWrappedOwnerChanged(uint256 entityId, address newowner) external;
     function entityUnderDisupte(uint256 entityId) external view returns(bool);
     function entityInfo(uint256 entityId) external view returns(
             address    originalOwner,

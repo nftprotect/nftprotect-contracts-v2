@@ -102,7 +102,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         emit ProtectorFactoryUnregistered(factory);
     }
 
-    function protectorCreated(IProtector pr, address original, address creator) public override onlyFactory()
+    function onProtectorCreated(IProtector pr, address original, address creator) public override onlyFactory()
     {
         _userRegistry.giveReward(creator);
         _protectorToOriginal[pr]=original;
@@ -149,7 +149,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         emit RequestHubChanged(requestHub);
     }
 
-    function entityCreated(address creator, address referrer, Protection pr) public override payable onlyProtector() returns(uint256)
+    function onEntityCreated(address creator, address referrer, Protection pr) public override payable onlyProtector() returns(uint256)
     {
         require(pr==Protection.Basic || _userRegistry.isQualified(creator), "not qualified");
         require(_userRegistry.isRegistered(creator), "unregistered");
@@ -162,7 +162,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         return entityId;
     }
 
-    function entityWrappedOwnerChanged(uint256 entityId, address owner) public override onlyProtector()
+    function onEntityWrappedOwnerChanged(uint256 entityId, address owner) public override onlyProtector()
     {
         Entity storage entity=_entities[entityId];
         require(entity.originalOwner!=address(0), "no entity");
