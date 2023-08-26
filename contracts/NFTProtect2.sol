@@ -39,6 +39,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     event MetaEvidenceLoaderChanged(address);
     event RequestHubChanged(IRequestHub);
     event BurnOnActionChanged(bool boa);
+    event AllowAnonymousChanged(bool allow);
 
     struct Entity
     {
@@ -58,17 +59,25 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     IRequestHub                         public _requestHub;
     address                             public _metaEvidenceLoader;
     bool                                public _burnOnAction;
+    bool                                public _allowAnonymous;
 
     constructor()
     {
         emit Deployed();
         setBurnOnAction(true);
+        setAllowAnonymous(true);
     }
 
     function setBurnOnAction(bool boa) public onlyOwner
     {
         _burnOnAction=boa;
         emit BurnOnActionChanged(boa);
+    }
+
+    function setAllowAnonymous(bool allow) public onlyOwner
+    {
+        _allowAnonymous=allow;
+        emit AllowAnonymousChanged(allow);
     }
 
     modifier onlyFactory()
@@ -156,7 +165,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     function onEntityCreated(address creator, address referrer, Protection pr) public override payable onlyProtector() returns(uint256)
     {
         require(pr==Protection.Basic || _userRegistry.isQualified(creator), "not qualified");
-        require(_userRegistry.isRegistered(creator), "unregistered");
+        require(_userRegistry.isRegistered(creator) || _allowAnonymous, "not registered");
         _userRegistry.processPayment{value: msg.value}(creator, payable(referrer), pr);
         uint256 entityId=++_entityCounter;
         _entities[entityId].originalOwner=creator;
@@ -170,7 +179,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     {
         Entity storage entity=_entities[entityId];
         require(entity.originalOwner!=address(0), "no entity");
-        require(_userRegistry.isRegistered(owner), "not registered");
+        require(_userRegistry.isRegistered(owner) || _allowAnonymous, "not registered");
         entity.wrappedOwner=owner;
     }
 
