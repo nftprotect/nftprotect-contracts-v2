@@ -32,12 +32,17 @@ import "./ERC20Rescue.sol";
 contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
 {
     event Deployed();
-    event TechnicalOwnerChanged(address);
-    event ProtectorFactoryRegistered(IProtectorFactory);
-    event ProtectorFactoryUnregistered(IProtectorFactory);
-    event UserRegistryChanged(IUserRegistry);
-    event MetaEvidenceLoaderChanged(address);
-    event RequestHubChanged(IRequestHub);
+    event TechnicalOwnerChanged(address towner);
+    event ProtectorFactoryRegistered(IProtectorFactory factory);
+    event ProtectorFactoryUnregistered(IProtectorFactory factory);
+    event ProtectorCreated(IProtectorFactory factory, IProtector protector, address original);
+    event EntityProtected(uint256 indexed entityId, Protection pr, IProtector protector, address owner);
+    event EntityUnprotected(uint256 indexed entityId);
+    event EntityOriginalOwnerChanged(uint256 indexed entityId, address owner);
+    event EntityWrappedOwnerChanged(uint256 indexed entityId, address owner);
+    event UserRegistryChanged(IUserRegistry ureg);
+    event MetaEvidenceLoaderChanged(address mel);
+    event RequestHubChanged(IRequestHub rh);
     event BurnOnActionChanged(bool boa);
     event AllowAnonymousChanged(bool allow);
 
@@ -116,6 +121,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         _userRegistry.giveReward(creator);
         _protectorToOriginal[pr]=original;
         _originalToProtector[original]=pr;
+        emit ProtectorCreated(IProtectorFactory(_msgSender()), pr, original);
     }
 
     function protector(address original) public view override returns(IProtector)
@@ -172,6 +178,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         _entities[entityId].wrappedOwner=creator;
         _entities[entityId].protection=pr;
         _entities[entityId].protector=IProtector(_msgSender());
+        emit EntityProtected(entityId, pr, IProtector(_msgSender()), creator);
         return entityId;
     }
 
@@ -181,6 +188,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         require(entity.originalOwner!=address(0), "no entity");
         require(_userRegistry.isRegistered(owner) || _allowAnonymous, "not registered");
         entity.wrappedOwner=owner;
+        emit EntityWrappedOwnerChanged(entityId, owner);
     }
 
     function entityUnderDisupte(uint256 entityId) public view override returns(bool)
@@ -215,6 +223,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
             dst=entity.wrappedOwner;
         }
         entity.originalOwner=dst;
+        emit EntityWrappedOwnerChanged(entityId, dst);
         if (_burnOnAction)
         {
             _burnEntity(entityId, dst);
@@ -238,5 +247,6 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         require(entity.originalOwner!=address(0), "no entity");
         entity.protector.burnEntity(entityId, dst);
         delete _entities[entityId];
+        emit EntityUnprotected(entityId);
     }
 }
