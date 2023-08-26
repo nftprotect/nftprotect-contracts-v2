@@ -49,6 +49,8 @@ interface IRequestHub
         askOwnershipRestoreArbitrateProtocolBreach
     }
 
+    function setMetaEvidenceLoader(address mel) external;
+    function setArbitratorRegistry(address areg) external;
     function setUserRegistry(IUserRegistry userRegistry) external;
     function hasRequest(uint256 entityId) external view returns(bool);
     function submitMetaEvidence(MetaEvidenceType evidenceType, string memory evidence) external;

@@ -132,6 +132,10 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         {
             _userRegistry.setMetaEvidenceLoader(mel);
         }
+        if (address(_requestHub)!=address(0))
+        {
+            _requestHub.setMetaEvidenceLoader(mel);
+        }
         emit MetaEvidenceLoaderChanged(mel);
     }
 
