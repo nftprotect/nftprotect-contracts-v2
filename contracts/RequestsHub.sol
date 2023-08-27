@@ -50,7 +50,9 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         Initial,
         Accepted,
         Rejected,
-        Disputed
+        Disputed,
+        Disputed_Accepted,
+        Disputed_Rejected
     }
     enum ReqType
     {
@@ -434,13 +436,13 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
     {
         require(requestId>0, "unknown requestId");
         Request storage request=_requests[requestId];
-        require(request.status!=Status.Accepted && request.status!=Status.Rejected, "request over");
+        require(request.status==Status.Disputed, "request over");
         IArbitrableProxy arbitrableProxy;
         (arbitrableProxy, )=_arbitratorRegistry.arbitrator(request.arbitratorId);
         (, bool isRuled, uint256 ruling,)=arbitrableProxy.disputes(request.localDisputeId);
         require(isRuled, "ruling pending");
         bool accept=(ruling==1);
-        request.status=accept?Status.Accepted:Status.Rejected;
+        request.status=accept?Status.Disputed_Accepted:Status.Disputed_Rejected;
         if (request.reqtype==ReqType.OwnershipAdjustment)
         {
             emit OwnershipAdjustmentAnswered(requestId, accept);
