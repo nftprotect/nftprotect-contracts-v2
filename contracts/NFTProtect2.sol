@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IUserRegistry.sol";
 import "./Coupons.sol";
 import "./IProtector.sol";
-import "./IRequestHub.sol";
+import "./RequestsHub.sol";
 import "./INFTProtect2Core.sol";
 import "./ERC20Rescue.sol";
 
@@ -42,7 +42,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     event EntityWrappedOwnerChanged(uint256 indexed entityId, address owner);
     event UserRegistryChanged(IUserRegistry ureg);
     event MetaEvidenceLoaderChanged(address mel);
-    event RequestHubChanged(IRequestHub rh);
+    event RequestHubChanged(RequestsHub rh);
     event BurnOnActionChanged(bool boa);
     event AllowAnonymousChanged(bool allow);
 
@@ -61,7 +61,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     mapping(address=>IProtector)        public _originalToProtector;
     mapping(uint256=>Entity)            public _entities;
     IUserRegistry                       public _userRegistry;
-    IRequestHub                         public _requestHub;
+    RequestsHub                         public _requestHub;
     address                             public _metaEvidenceLoader;
     bool                                public _burnOnAction;
     bool                                public _allowAnonymous;
@@ -161,7 +161,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
         emit UserRegistryChanged(userRegistry);
     }
 
-    function setRequestHub(IRequestHub requestHub) public onlyOwner()
+    function setRequestHub(RequestsHub requestHub) public onlyOwner()
     {
         _requestHub=requestHub;
         _requestHub.setUserRegistry(_userRegistry);

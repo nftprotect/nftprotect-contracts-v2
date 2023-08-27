@@ -88,12 +88,12 @@ contract RequestsHub is Ownable, IRequestHub, ERC20Rescue
         setArbitratorRegistry(areg);
     }
 
-    function setMetaEvidenceLoader(address mel) public override onlyCore
+    function setMetaEvidenceLoader(address mel) public onlyCore
     {
         _metaEvidenceLoader=mel;
     }
 
-    function setArbitratorRegistry(address areg) public override onlyOwner
+    function setArbitratorRegistry(address areg) public  onlyOwner
     {
         _arbitratorRegistry=ArbitratorRegistry(areg);
         emit ArbitratorRegistryChanged(_arbitratorRegistry);
