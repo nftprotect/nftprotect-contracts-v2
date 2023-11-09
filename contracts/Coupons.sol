@@ -77,4 +77,10 @@ contract Coupons is Ownable, ERC20, ERC20Rescue
     {
         require(_transferrable || from==address(0) || to==address(0), "non-transferrable");
     }
+
+    function _update(address from, address to, uint256 value) internal virtual override
+    {
+        super._update(from, to, value);
+        require(_transferrable || from==address(0) || to==address(0), "non-transferrable");
+    }
 }

@@ -162,11 +162,14 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
         _transfer(ownerOf(tokenId), newowner, tokenId);
     }
 
-    function _beforeTokenTransfer(address /* from */, address to, uint256 tokenId, uint256 /* batchSize */) internal virtual
+    function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address)
     {
+        address from = super._update(to, tokenId, auth);
         uint256 entityId=_tokenIdToEntity[tokenId];
         require(entityId!=0, "not protected");
         require(!_core.entityUnderDisupte(_tokenIdToEntity[tokenId]), "under dispute");
         _core.onEntityWrappedOwnerChanged(entityId, to);
+        return from;
     }
+    
 }
