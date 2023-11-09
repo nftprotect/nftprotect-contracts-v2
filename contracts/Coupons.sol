@@ -40,8 +40,7 @@ contract Coupons is Ownable, ERC20, ERC20Rescue
         _;
     }
 
-
-    constructor() ERC20("NFTProtect2 Coupons", "NFTPC")
+    constructor() ERC20("NFT Protect Coupons", "NFTPC")
     {
         emit Deployed();
         setTransferrable(true);
@@ -74,7 +73,7 @@ contract Coupons is Ownable, ERC20, ERC20Rescue
         _burn(account, amount);
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 /*amount*/) internal view override
+    function _beforeTokenTransfer(address from, address to, uint256 /*amount*/) internal view
     {
         require(_transferrable || from==address(0) || to==address(0), "non-transferrable");
     }

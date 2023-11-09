@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IUserRegistry.sol";
 import "./Coupons.sol";
 import "./IProtector.sol";
-import "./IRequestHub.sol";
+import "./IRequestsHub.sol";
 import "./INFTProtect2Core.sol";
 import "./ERC20Rescue.sol";
 
@@ -66,7 +66,7 @@ contract NFTProtect2 is Ownable, ERC20Rescue, INFTProtect2Core
     bool                                public _burnOnAction;
     bool                                public _allowAnonymous;
 
-    constructor()
+    constructor() 
     {
         emit Deployed();
         setBurnOnAction(true);

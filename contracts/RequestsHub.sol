@@ -25,7 +25,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./INFTProtect2Core.sol";
 import "./ArbitratorRegistry.sol";
 import "./IUserRegistry.sol";
-import "./IRequestHub.sol";
+import "./IRequestsHub.sol";
 
 
 contract RequestsHub is Ownable, IRequestHub, ERC20Rescue

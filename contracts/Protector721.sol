@@ -86,7 +86,7 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
             INFTProtect2Core core,
             IERC721          original,
             string memory    name,
-            string memory    symbol) ERC721(name, symbol)
+            string memory    symbol) ERC721(name, symbol) Ownable(msg.sender)
     {
         _core=core;
         _original=original;
@@ -109,7 +109,7 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
      */
     function tokenURI(uint256 tokenId) public view override returns(string memory)
     {
-        require(_exists(tokenId));
+     //   require(_exists(tokenId));
         if(bytes(_base).length==0 && IERC165(_original).supportsInterface(type(IERC721Metadata).interfaceId))
         {
             return IERC721Metadata(address(_original)).tokenURI(tokenId);
@@ -162,9 +162,8 @@ contract Protector721 is IProtector, ERC721, IERC721Receiver, Ownable
         _transfer(ownerOf(tokenId), newowner, tokenId);
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal virtual override(ERC721)
+    function _beforeTokenTransfer(address /* from */, address to, uint256 tokenId, uint256 /* batchSize */) internal virtual
     {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
         uint256 entityId=_tokenIdToEntity[tokenId];
         require(entityId!=0, "not protected");
         require(!_core.entityUnderDisupte(_tokenIdToEntity[tokenId]), "under dispute");
