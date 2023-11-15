@@ -26,8 +26,11 @@ async function deployProtectorFactory721(nftProtect2: GetContractReturnType) {
 
 async function main() {
   const arbitratorRegistry = await hre.viem.getContractAt("ArbitratorRegistry", aregAddress)
+  console.log(`ArbitratorRegistry exists at ${arbitratorRegistry.address}`);
+
   const did = await hre.viem.getContractAt("UserDIDDummyAllowAll", didAddress)
-  
+  console.log(`UserDIDDummyAllowAll exists at ${did.address}`);
+
   const nftProtect2 = await deployNFTProtect2();
   console.log(`NFTProtect2 deployed to ${nftProtect2.address}`);
 
