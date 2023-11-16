@@ -24,6 +24,14 @@ After deployment, contracts can be verified using the verify.ts script. This scr
 npx hardhat run scripts/verify.ts --network sepolia
 ```
 
+## Configuration
+
+To configure contracts automatically after deployment, run the following:
+```shell
+npx hardhat run scripts/configure.ts --network sepolia
+```
+This script performs smart contracts configuration based on contracts.json and arbitrators.json.
+
 ## Contracts
 ### Sepolia
 - [ArbitratorRegistry](https://sepolia.etherscan.io/address/0x8557b772ca78e03cc7403d9e4839aa832716f384)
