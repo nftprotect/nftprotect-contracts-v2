@@ -1,10 +1,10 @@
 import fs from 'fs';
 
-// Читаем файлы
+// Reading files
 const contractsJson = JSON.parse(fs.readFileSync('contracts.json', 'utf-8'));
 let readmeMd = fs.readFileSync('README.md', 'utf-8');
 
-// Генерируем блок контрактов
+// Generating contracts block
 let contractsBlock = '## Contracts\n';
 for (const network in contractsJson) {
   const capitalizedNetwork = network.charAt(0).toUpperCase() + network.slice(1);
@@ -16,17 +16,17 @@ for (const network in contractsJson) {
   contractsBlock += '\n';
 }
 
-// Проверяем, существует ли уже блок контрактов
+// Checking if contracts block exists
 const contractsBlockExists = readmeMd.includes('## Contracts');
 
 if (contractsBlockExists) {
-  // Заменяем существующий блок контрактов
+  // Replacing existing block
   const contractsBlockRegex = /## Contracts[\s\S]*?(?=##(?![\s\S]*##)|$)/;
   readmeMd = readmeMd.replace(contractsBlockRegex, contractsBlock);
 } else {
-  // Добавляем новый блок контрактов
-  readmeMd += contractsBlock;
+  // Adding contracts block
+  readmeMd += contractsBlock + '\n\n##';
 }
 
-// Записываем обновленный README.md
+// Writing README.md
 fs.writeFileSync('README.md', readmeMd);
