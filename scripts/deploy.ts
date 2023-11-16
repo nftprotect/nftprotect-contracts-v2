@@ -1,8 +1,27 @@
-import { formatEther, parseEther, GetContractReturnType } from "viem";
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { GetContractReturnType } from "viem";
 import hre from "hardhat";
 
-const aregAddress = "0x6b5f8057679F6F35Efd1Ffb9EE90cF71f900bC38";
-const didAddress = "0x06da1f111d42BDf68b5AdA620459385D5ae2E3B1";
+const jsonFilePath = './contracts.json'; // Path to your JSON file
+
+let contractsData = existsSync(jsonFilePath) ? JSON.parse(readFileSync(jsonFilePath, 'utf-8')) : {};
+
+async function getOrDeployContract(contractName: string, deployFunction: () => Promise<GetContractReturnType>) {
+  const networkName = hre.network.name;
+  let networkData = contractsData[networkName] || {};
+
+  if (networkData[contractName]) {
+    const contract = await hre.viem.getContractAt(contractName, networkData[contractName]);
+    console.log(`Existing ${contractName}: ${contract.address}`)
+    return contract;
+  } else {
+    const contract = await deployFunction();
+    console.log(`Deployed ${contractName}: ${contract.address}`)
+    networkData[contractName] = contract.address;
+    contractsData[networkName] = networkData;
+    return contract;
+  }
+}
 
 async function deployNFTProtect2() {
   const nftProtect2 = await hre.viem.deployContract("NFTProtect2");
@@ -24,27 +43,32 @@ async function deployProtectorFactory721(nftProtect2: GetContractReturnType) {
   return protectorFactory721;
 }
 
-async function main() {
-  const arbitratorRegistry = await hre.viem.getContractAt("ArbitratorRegistry", aregAddress)
-  console.log(`ArbitratorRegistry exists at ${arbitratorRegistry.address}`);
-
-  const did = await hre.viem.getContractAt("UserDIDDummyAllowAll", didAddress)
-  console.log(`UserDIDDummyAllowAll exists at ${did.address}`);
-
-  const nftProtect2 = await deployNFTProtect2();
-  console.log(`NFTProtect2 deployed to ${nftProtect2.address}`);
-
-  const userRegistry = await deployUserRegistry(arbitratorRegistry, did, nftProtect2);
-  console.log(`UserRegistry deployed to ${userRegistry.address}`);
-
-  const requestsHub = await deployRequestsHub(arbitratorRegistry, nftProtect2);
-  console.log(`RequestsHub deployed to ${requestsHub.address}`);
-
-  const protectorFactory721 = await deployProtectorFactory721(nftProtect2);
-  console.log(`ProtectorFactory721 deployed to ${protectorFactory721.address}`);
+async function deployArbitratorRegistry() {
+  const arbRegistry = await hre.viem.deployContract("ArbitratorRegistry");
+  return arbRegistry;
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+async function deployDID() {
+  const did = await hre.viem.deployContract("UserDIDDummyAllowAll");
+  return did;
+}
+
+
+async function main() {
+  try {
+    const arbitratorRegistry = await getOrDeployContract("ArbitratorRegistry", deployArbitratorRegistry);
+    const did = await getOrDeployContract("UserDIDDummyAllowAll", deployDID);
+    const nftProtect2 = await getOrDeployContract("NFTProtect2", deployNFTProtect2);
+    const userRegistry = await getOrDeployContract("UserRegistry", () => deployUserRegistry(arbitratorRegistry, did, nftProtect2));
+    const requestsHub = await getOrDeployContract("RequestsHub", () => deployRequestsHub(arbitratorRegistry, nftProtect2));
+    const protectorFactory721 = await getOrDeployContract("ProtectorFactory721", () => deployProtectorFactory721(nftProtect2));
+  } catch (error) {
+    console.error(error);
+    process.exitCode = 1;
+  } finally {
+    // Write the updated data back to the file after all operations
+    writeFileSync(jsonFilePath, JSON.stringify(contractsData, null, 2));
+  }
+}
+
+main();

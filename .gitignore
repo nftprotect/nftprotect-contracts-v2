@@ -11,3 +11,6 @@ artifacts
 
 # Hardhat config contains private key and API key
 hardhat.config.ts
+
+# yarn
+yarn.lock
