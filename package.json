@@ -4,6 +4,7 @@
     "build": "hardhat compile",
     "deploy": "hardhat run ./scripts/deploy.ts",
     "verify": "hardhat run ./scripts/verify.ts",
+    "configure": "hardhat run ./scripts/configure.ts",
     "updateReadme": "hardhat run ./scripts/updateReadme.ts",
     "clean": "rm ./contracts.json"
   },
