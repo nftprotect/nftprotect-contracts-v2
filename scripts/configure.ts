@@ -165,7 +165,7 @@ async function configureUserRegistryFees() {
     return contract;
 }
 
-async function setMetaEvidenceLoader() {
+async function setMetaEvidenceLoader(address: `0x${string}`) {
     if (!networkData["NFTProtect2"]) {
         throw Error("NFTProtect2 contract address not found in contracts.json");
     }
@@ -173,15 +173,24 @@ async function setMetaEvidenceLoader() {
     const contract = await hre.viem.getContractAt("NFTProtect2", networkData["NFTProtect2"]);
     const currentMetaEvidenceLoader = await contract.read._metaEvidenceLoader();
 
-    if (currentMetaEvidenceLoader.toLowerCase() !== metaEvidenceLoader.toLowerCase()) {
-        console.log(`Setting metaEvidenceLoader to ${metaEvidenceLoader}...`);
-        const hash = await contract.write.setMetaEvidenceLoader([metaEvidenceLoader]);
+    if (currentMetaEvidenceLoader.toLowerCase() !== address.toLowerCase()) {
+        console.log(`Setting metaEvidenceLoader to ${address}...`);
+        const hash = await contract.write.setMetaEvidenceLoader([address]);
         await processTransaction(hash)
     } else {
-        console.log(`MetaEvidenceLoader is already set to ${metaEvidenceLoader}`);
+        console.log(`MetaEvidenceLoader is already set to ${address}`);
     }
 
     return contract;
+}
+
+async function setMetaEvidenceLoaderCurrentUser() {
+    const clients = await hre.viem.getWalletClients()
+    if (clients.length === 0) {
+        throw Error('No clients configured')
+    }
+    const address = clients[0].account.address
+    return await setMetaEvidenceLoader(address)
 }
 
 async function configureRequestHubMetaEvidence() {
@@ -192,7 +201,7 @@ async function configureRequestHubMetaEvidence() {
     if (metaEvidences.length === 0) {
         throw Error("No MetaEvidences provided!");
     }
-
+    let setLoaderFired = false
     const contract = await hre.viem.getContractAt("RequestsHub", networkData["RequestsHub"]);
 
     for (const metaEvidence of metaEvidences) {
@@ -200,6 +209,11 @@ async function configureRequestHubMetaEvidence() {
 
         if (currentMetaEvidence !== metaEvidence.url) {
             console.log(`Setting metaEvidence ${metaEvidence.name} to ${metaEvidence.url}...`);
+            // We have to set MetaEvidenceLoader to current account to be able to submit metaEvidence
+            if (!setLoaderFired) {
+                await setMetaEvidenceLoaderCurrentUser()
+                setLoaderFired = true
+            }
             const hash = await contract.write.submitMetaEvidence([metaEvidence.id, metaEvidence.url]);
             await processTransaction(hash)
         } else {
@@ -221,8 +235,7 @@ async function main() {
             await setNFTProtectRequestHub();
             await setNFTProtectUserRegistry();
             await registerProtectorFactory();
-            await setTechnicalOwner();
-            const nftProtect = await setMetaEvidenceLoader();
+            const nftProtect = await setTechnicalOwner();
             console.log(`NFTProtect2 ${nftProtect.address} configured successfully`);
             console.log(`3. UserRegistry:`);
             await configureUserRegistryFees();
@@ -230,6 +243,8 @@ async function main() {
             console.log(`4. RequestHub:`);
             await configureRequestHubMetaEvidence();
             console.log(`RequestHub configured successfully`);
+            console.log('5. Setting metaEvidenceLoader')
+            await setMetaEvidenceLoader(metaEvidenceLoader);
             console.log('All done!');
         } else {
             throw Error('No client configured')
