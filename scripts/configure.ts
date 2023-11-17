@@ -5,20 +5,18 @@ import {
     technicalOwner,
     metaEvidenceLoader,
     basicFeeWei, 
-    ultraFeeWei 
+    ultraFeeWei,
+    arbitrators,
+    metaEvidences
 } from '../contracts.config';
 
 
 const contractsFilePath = './contracts.json'; // Path to your JSON file
-const arbitratorsFilePath = './arbitrators.json'; // Path to your arbitrators file
-const metaEvidencesFilePath = './metaEvidences.json'; // Path to your JSON file
 
 const nullAddress = '0x0000000000000000000000000000000000000000'
 const networkName = hre.network.name;
 
 let contractsData = existsSync(contractsFilePath) ? JSON.parse(readFileSync(contractsFilePath, 'utf-8')) : {};
-let arbitratorsData = existsSync(arbitratorsFilePath) ? JSON.parse(readFileSync(arbitratorsFilePath, 'utf-8')) : {};
-let metaEvidencesData = existsSync(metaEvidencesFilePath) ? JSON.parse(readFileSync(metaEvidencesFilePath, 'utf-8')) : [];
 let networkData = contractsData[networkName] || {};
 let client: PublicClient;
 
@@ -38,14 +36,14 @@ async function processTransaction(hash :`0x${string}`) {
 // ArbitratorRegistry
 
 async function configureArbitratorRegistry() {
-    let arbitratorData = arbitratorsData[networkName];
+    let arbitratorData = arbitrators[networkName];
 
     if (!networkData["ArbitratorRegistry"]) {
         throw Error("ArbitratorRegistry contract address not found in contracts.json")
     }
 
     if (!arbitratorData) {
-        throw Error("Arbitrator data not found in arbitrators.json")
+        throw Error(`Arbitrator data not found for ${networkName}`)
     }
 
     const contract = await hre.viem.getContractAt("ArbitratorRegistry", networkData["ArbitratorRegistry"]);
@@ -191,13 +189,13 @@ async function configureRequestHubMetaEvidence() {
         throw Error("RequestsHub contract address not found in contracts.json");
     }
 
-    if (metaEvidencesData.length === 0) {
+    if (metaEvidences.length === 0) {
         throw Error("No MetaEvidences provided!");
     }
 
     const contract = await hre.viem.getContractAt("RequestsHub", networkData["RequestsHub"]);
 
-    for (const metaEvidence of metaEvidencesData) {
+    for (const metaEvidence of metaEvidences) {
         const currentMetaEvidence = await contract.read._metaEvidences([metaEvidence.id]);
 
         if (currentMetaEvidence !== metaEvidence.url) {
@@ -232,6 +230,7 @@ async function main() {
             console.log(`4. RequestHub:`);
             await configureRequestHubMetaEvidence();
             console.log(`RequestHub configured successfully`);
+            console.log('All done!');
         } else {
             throw Error('No client configured')
         }
