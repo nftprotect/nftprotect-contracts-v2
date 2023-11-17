@@ -16,6 +16,11 @@ Contracts are deployed using the deploy.ts script. This script checks if a contr
 npx hardhat compile
 npx hardhat run scripts/deploy.ts --network sepolia
 ```
+or with your package manager:
+```shell
+yarn build
+yarn deploy --network sepolia
+```
 
 ## Verification
 
@@ -23,12 +28,20 @@ After deployment, contracts can be verified using the verify.ts script. This scr
 ```shell
 npx hardhat run scripts/verify.ts --network sepolia
 ```
+or with your package manager:
+```shell
+yarn verify --network sepolia
+```
 
 ## Configuration
 
 To configure contracts automatically after deployment, run the following:
 ```shell
 npx hardhat run scripts/configure.ts --network sepolia
+```
+or with your package manager:
+```shell
+yarn configure --network sepolia
 ```
 This script performs smart contracts configuration based on contracts.json and arbitrators.json.
 

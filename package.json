@@ -1,5 +1,12 @@
 {
   "name": "hardhat-project",
+  "scripts": {
+    "build": "npx hardhat compile",
+    "deploy": "npx hardhat run ./scripts/deploy.ts",
+    "verify": "npx hardhat run ./scripts/verify.ts",
+    "updateReadme": "npx hardhat run ./scripts/updateReadme.ts",
+    "clean": "rm ./contracts.json"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^1.0.0",
