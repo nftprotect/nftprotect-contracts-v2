@@ -8,13 +8,17 @@ import {
     ultraFeeWei 
 } from '../contracts.config';
 
+
 const contractsFilePath = './contracts.json'; // Path to your JSON file
 const arbitratorsFilePath = './arbitrators.json'; // Path to your arbitrators file
+const metaEvidencesFilePath = './metaEvidences.json'; // Path to your JSON file
+
 const nullAddress = '0x0000000000000000000000000000000000000000'
 const networkName = hre.network.name;
 
 let contractsData = existsSync(contractsFilePath) ? JSON.parse(readFileSync(contractsFilePath, 'utf-8')) : {};
 let arbitratorsData = existsSync(arbitratorsFilePath) ? JSON.parse(readFileSync(arbitratorsFilePath, 'utf-8')) : {};
+let metaEvidencesData = existsSync(metaEvidencesFilePath) ? JSON.parse(readFileSync(metaEvidencesFilePath, 'utf-8')) : [];
 let networkData = contractsData[networkName] || {};
 let client: PublicClient;
 
@@ -163,6 +167,51 @@ async function configureUserRegistryFees() {
     return contract;
 }
 
+async function setMetaEvidenceLoader() {
+    if (!networkData["NFTProtect2"]) {
+        throw Error("NFTProtect2 contract address not found in contracts.json");
+    }
+
+    const contract = await hre.viem.getContractAt("NFTProtect2", networkData["NFTProtect2"]);
+    const currentMetaEvidenceLoader = await contract.read._metaEvidenceLoader();
+
+    if (currentMetaEvidenceLoader.toLowerCase() !== metaEvidenceLoader.toLowerCase()) {
+        console.log(`Setting metaEvidenceLoader to ${metaEvidenceLoader}...`);
+        const hash = await contract.write.setMetaEvidenceLoader([metaEvidenceLoader]);
+        await processTransaction(hash)
+    } else {
+        console.log(`MetaEvidenceLoader is already set to ${metaEvidenceLoader}`);
+    }
+
+    return contract;
+}
+
+async function configureRequestHubMetaEvidence() {
+    if (!networkData["RequestsHub"]) {
+        throw Error("RequestsHub contract address not found in contracts.json");
+    }
+
+    if (metaEvidencesData.length === 0) {
+        throw Error("No MetaEvidences provided!");
+    }
+
+    const contract = await hre.viem.getContractAt("RequestsHub", networkData["RequestsHub"]);
+
+    for (const metaEvidence of metaEvidencesData) {
+        const currentMetaEvidence = await contract.read._metaEvidences([metaEvidence.id]);
+
+        if (currentMetaEvidence !== metaEvidence.url) {
+            console.log(`Setting metaEvidence ${metaEvidence.name} to ${metaEvidence.url}...`);
+            const hash = await contract.write.submitMetaEvidence([metaEvidence.id, metaEvidence.url]);
+            await processTransaction(hash)
+        } else {
+            console.log(`MetaEvidence ${metaEvidence.name} is already set to ${metaEvidence.url}`);
+        }
+    }
+
+    return contract;
+}
+
 async function main() {
     try {
         client = await hre.viem.getPublicClient();
@@ -173,12 +222,16 @@ async function main() {
             console.log(`2. NFTProtect2:`);
             await setNFTProtectRequestHub();
             await setNFTProtectUserRegistry();
+            await registerProtectorFactory();
             await setTechnicalOwner();
-            const nftProtect = await registerProtectorFactory();
+            const nftProtect = await setMetaEvidenceLoader();
             console.log(`NFTProtect2 ${nftProtect.address} configured successfully`);
             console.log(`3. UserRegistry:`);
             await configureUserRegistryFees();
             console.log(`UserRegistry configured successfully`);
+            console.log(`4. RequestHub:`);
+            await configureRequestHubMetaEvidence();
+            console.log(`RequestHub configured successfully`);
         } else {
             throw Error('No client configured')
         }
