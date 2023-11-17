@@ -40,5 +40,6 @@ This script performs smart contracts configuration based on contracts.json and a
 - [UserRegistry](https://sepolia.etherscan.io/address/0x0ad1d72235a939f5bd090f5f2bd42b81851aa8de)
 - [RequestsHub](https://sepolia.etherscan.io/address/0x13367954799c3c89452b0a634f898f5d2f3d6e84)
 - [ProtectorFactory721](https://sepolia.etherscan.io/address/0xbfdc9f6ba697312a8a86a19aaff036e720fce016)
+- [Coupons](https://sepolia.etherscan.io/address/0x47B75a11a5Aa922C01f3808e25eBea9D55Eec57F)
 
 ##

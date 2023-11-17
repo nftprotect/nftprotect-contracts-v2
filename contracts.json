@@ -5,6 +5,7 @@
     "NFTProtect2": "0x8ef041e6907fd2b8e43272fe5a558a993384f03e",
     "UserRegistry": "0x0ad1d72235a939f5bd090f5f2bd42b81851aa8de",
     "RequestsHub": "0x13367954799c3c89452b0a634f898f5d2f3d6e84",
-    "ProtectorFactory721": "0xbfdc9f6ba697312a8a86a19aaff036e720fce016"
+    "ProtectorFactory721": "0xbfdc9f6ba697312a8a86a19aaff036e720fce016",
+    "Coupons": "0x47B75a11a5Aa922C01f3808e25eBea9D55Eec57F"
   }
 }
