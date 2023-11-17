@@ -13,11 +13,6 @@ The project also includes hardhat scripts for deploying these contracts (deploy.
 
 Contracts are deployed using the deploy.ts script. This script checks if a contract has already been deployed on the network, and if not, deploys it.
 ```shell
-npx hardhat compile
-npx hardhat run scripts/deploy.ts --network sepolia
-```
-or with your package manager:
-```shell
 yarn build
 yarn deploy --network sepolia
 ```
@@ -26,20 +21,12 @@ yarn deploy --network sepolia
 
 After deployment, contracts can be verified using the verify.ts script. This script reads the contract data from contracts.json and verifies each contract on the network.
 ```shell
-npx hardhat run scripts/verify.ts --network sepolia
-```
-or with your package manager:
-```shell
 yarn verify --network sepolia
 ```
 
 ## Configuration
 
 To configure contracts automatically after deployment, run the following:
-```shell
-npx hardhat run scripts/configure.ts --network sepolia
-```
-or with your package manager:
 ```shell
 yarn configure --network sepolia
 ```
